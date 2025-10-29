@@ -1,0 +1,57 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Enhanced Result</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+</head>
+<body>
+  <div class="container">
+    <h1>Enhanced Image</h1>
+
+    <div class="meta-grid">
+      <div>
+        <h3>Generation Summary</h3>
+        <table class="kv">
+          <tr><th>Landing URL</th><td class="wrap"><a href="{{ landing_url }}" target="_blank">{{ landing_url }}</a></td></tr>
+          <tr><th>Base Image</th><td><a href="{{ url_for('uploads', filename=base_image_name) }}" target="_blank">{{ base_image_name }}</a></td></tr>
+          <tr><th>Output Image</th><td><a href="{{ url_for('outputs', filename=output_image_name) }}" target="_blank">{{ output_image_name }}</a></td></tr>
+          <tr><th>Image Model</th><td>{{ model_image }}</td></tr>
+          <tr><th>Text Model</th><td>{{ model_text }}</td></tr>
+          <tr><th>Temperature</th><td>{{ "%.2f"|format(temperature) }}</td></tr>
+          <tr><th>Aspect Ratio</th><td>{{ aspect_ratio }}</td></tr>
+        </table>
+
+        <h3>Token Usage</h3>
+        <table class="kv">
+          <tr><th>Total (in / out / all)</th>
+              <td>{{ tokens.input }} / {{ tokens.output }} / {{ tokens.total }}</td></tr>
+          <tr><th>Step1 (style) in/out/total</th>
+              <td>{{ tokens_step1.input }} / {{ tokens_step1.output }} / {{ tokens_step1.total }}</td></tr>
+          <tr><th>Step2 (refine) in/out/total</th>
+              <td>{{ tokens_step2.input }} / {{ tokens_step2.output }} / {{ tokens_step2.total }}</td></tr>
+        </table>
+
+      </div>
+
+      <div>
+        <h3>Output Preview</h3>
+        <img class="result" src="{{ url_for('outputs', filename=output_image_name) }}" alt="enhanced"/>
+
+        <h3 style="margin-top:18px;">Base Image</h3>
+        <img class="result" src="{{ url_for('uploads', filename=base_image_name) }}" alt="base"/>
+      </div>
+    </div>
+    <p><a href="/variation">Open Variation Page</a></p>
+
+    <details open>
+      <summary><strong>Prompt used</strong></summary>
+      <pre class="mono">{{ prompt_full }}</pre>
+    </details>
+
+    <p style="margin-top:18px"><a href="/">← Generate another</a></p>
+  </div>
+</body>
+</html>
