@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Creative Image Enhancement</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+</head>
+<body>
+  <div class="grid">
+    <section class="left">
+      <h1>Select a creative to begin. Brand URL, title and image are auto-filled.</h1>
+
+      <label> Select Creative </label>
+      <select id="creativeSelect"></select>
+
+      <label> Landing URL (auto-filled) </label>
+      <input id="brandUrl" type="url" placeholder="https://…" readonly>
+
+      <label> Creative Title (auto-filled) </label>
+      <input id="creativeTitle" type="text" readonly>
+
+      <label> Ad Creative  URL (auto-filled) </label>
+      <input id="imgUrl" type="url" readonly>
+
+      <form id="genForm" method="post" action="/generate" enctype="multipart/form-data">
+        <!-- keep PNG-only upload -->
+        <label> Upload Base Image (.png) </label>
+        <input name="image" id="image" type="file" accept="image/png" required>
+
+        <!-- the pipeline needs the brand URL -->
+        <input name="brand_url" id="brandUrlHidden" type="hidden">
+
+        <button type="submit">Generate Enhanced Banner</button>
+      </form>
+
+      {% if error %}
+        <p class="error">{{ error }}</p>
+      {% endif %}
+    </section>
+
+    <section class="right">
+      <div class="head">
+        <span>Ad Creative Image Preview</span>
+        <a id="openInTab" href="#" target="_blank" rel="noopener">Open in new tab</a>
+      </div>
+      <img id="preview" alt="ad preview"/>
+    </section>
+  </div>
+
+  <script>
+    async function loadCreatives() {
+      const res = await fetch("/api/creatives");
+      const data = await res.json();
+      const items = data.items || [];
+
+      const sel = document.getElementById("creativeSelect");
+      sel.innerHTML = "";
+      items.forEach((it, idx) => {
+        const opt = document.createElement("option");
+        opt.value = idx;
+        opt.textContent = it.title || ("Creative " + idx);
+        opt.dataset.brandUrl = it.brand_url || "";
+        opt.dataset.imgUrl = it.image_url || "";
+        opt.dataset.title = it.title || "";
+        sel.appendChild(opt);
+      });
+
+      if (items.length) applySelection(sel.options[0]);
+    }
+
+    function applySelection(opt) {
+      const brandUrl = opt.dataset.brandUrl || "";
+      const imgUrl   = opt.dataset.imgUrl || "";
+      const title    = opt.dataset.title || "";
+
+      document.getElementById("brandUrl").value = brandUrl;
+      document.getElementById("creativeTitle").value = title;
+      document.getElementById("imgUrl").value = imgUrl;
+
+      const prev = document.getElementById("preview");
+      const a = document.getElementById("openInTab");
+      if (imgUrl) {
+        prev.src = imgUrl;
+        a.href = imgUrl;
+      } else {
+        prev.removeAttribute("src");
+        a.href = "#";
+      }
+    }
+
+    document.getElementById("creativeSelect").addEventListener("change", (e) => {
+      applySelection(e.target.selectedOptions[0]);
+    });
+
+    // Keep hidden field in sync before submit
+    document.getElementById("genForm").addEventListener("submit", (e) => {
+      const brandUrl = document.getElementById("brandUrl").value;
+      document.getElementById("brandUrlHidden").value = brandUrl;
+      // basic guard: PNG only
+      const f = document.getElementById("image").files[0];
+      if (!f || !f.name.toLowerCase().endsWith(".png")) {
+        e.preventDefault();
+        alert("Please upload a .png file.");
+      }
+    });
+
+    loadCreatives();
+  </script>
+</body>
+</html>
